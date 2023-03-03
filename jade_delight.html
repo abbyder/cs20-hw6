@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Jade Delight</title>
+
+<style type="text/css">
+
+	html, body {
+		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	}
+
+	h1 {
+		width: 550px;
+		text-align: center;
+		padding: 30px 40px 0px 40px;
+		margin: 50px 40px 0px 40px;
+		background-color: #40d08fc7;
+	}
+
+	form {
+		margin: 0px 40px 40px 40px;
+		padding: 30px 40px;
+		background-color: #40d08fc7;
+		width: 550px;
+	}
+
+	.userInfo,.address {
+		float: left;
+		clear: left;
+		width: 300px;
+	}
+
+	.userInfo input {
+		float: right;
+		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	}
+
+	input[type="radio"] {
+		width: 50px;
+		display: inline-block;
+	}
+
+	input[type="text"] {
+		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	}
+
+	input[type="button"] {
+		padding: 10px;
+		font-size: 15px;
+		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+		border-radius: 7px;
+		border: 1px solid black;
+		margin-left: 215px;
+		margin-top: 20px;
+	}
+
+	table {
+		padding: 20px 0px;
+	}
+
+	select {
+		font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	}
+
+</style>
+</head>
+
+<body>
+<script>
+
+function MenuItem(name, cost)
+{
+	this.name = name;
+	this.cost=cost;
+}
+
+menuItems = new Array(
+	new MenuItem("Chicken Chop Suey", 5.5),
+	new MenuItem("Sweet and Sour Pork", 7.25),
+	new MenuItem("Shrimp Lo Mein", 6.80),
+	new MenuItem("Moo Shi Chicken", 9.50),
+	new MenuItem("Fried Rice", 3.25)
+);
+
+function makeSelect(name, minRange, maxRange)
+{
+	var t= "";
+	t = "<select name='" + name + "' size='1'>";
+	for (j=minRange; j<=maxRange; j++)
+	   t += "<option>" + j + "</option>";
+	t+= "</select>"; 
+	return t;
+}
+
+function td(content, className="")
+{
+	return "<td class = '" + className + "'>" + content + "</td>";
+}
+	
+</script>
+
+<h1>Jade Delight</h1>
+<form method="post">
+
+<p class="userInfo"><label>First Name:</label> <input type="text"  name='fname' /></p>
+<p class="userInfo"><label>Last Name*:</label>  <input type="text"  name='lname' /></p>
+<p class="userInfo address"><label>Street*:</label> <input type="text" name='street' /></p>
+<p class="userInfo address"><label>City*:</label> <input type="text" name='city' /></p>
+<p class="userInfo"><label>Phone*:</label> <input type="text"  name='phone' /></p>
+<p> 
+	<input type="radio"  name="p_or_d" value = "pickup" checked="checked"/>Pickup  
+	<input type="radio"  name='p_or_d' value = 'delivery'/>
+	Delivery
+</p>
+<table border="0" cellpadding="3">
+  <tr>
+    <th>Select Item</th>
+    <th>Item Name</th>
+    <th>Cost Each</th>
+    <th>Total Cost</th>
+  </tr>
+<script>
+
+  var s = "";
+  for (i=0; i< menuItems.length; i++)
+  {
+	  s += "<tr>";
+	  s += td(makeSelect("quan" + i, 0, 10),"selectQuantity");
+	  s += td(menuItems[i].name, "itemName");
+	  s += td("$" +menuItems[i].cost.toFixed(2), "cost");
+	  s += td("$<input type='text' name='cost'/>", "totalCost");
+	  s+= "</tr>";
+  }
+  document.writeln(s);
+</script>
+</table>
+<p class="subtotal totalSection"><label>Subtotal</label>: 
+   $ <input type="text"  name='subtotal' id="subtotal" />
+</p>
+<p class="tax totalSection"><label>Mass tax 6.25%:</label>
+  $ <input type="text"  name='tax' id="tax" />
+</p>
+<p class="total totalSection"><label>Total:</label> $ <input type="text"  name='total' id="total" />
+</p>
+
+<input type = "button" value = "Submit Order" />
+
+</form>
+
+
+<!-- new code -->
+<script>	// dealing with order cost calculations + displays
+
+	const totalCostDisplays = document.getElementsByClassName("totalCost");
+
+	// updateItemCost : Calculates + displays total cost for an item, 
+	//					then the order
+	function updateItemCost() {
+		let rowIdx = this.name.split("quan")[1];
+
+		// get selected value, multiply it by item cost
+		let itemSubtotal = (this.value * menuItems[rowIdx].cost).toFixed(2);
+
+		// update textbox
+		totalCostDisplays[rowIdx].lastChild.value = itemSubtotal;
+
+		// call updates on other totals
+		updateTotalsDisplay(totalCostDisplays)
+	}
+
+	// updateTotalDisplay : Calculates + displays the subtotal, tax,
+	//						and overall cost of order
+	function updateTotalsDisplay(itemTotals) {
+		let subtotal = 0;
+		// calculate + display order subtotal
+		for (let i = 0; i < itemTotals.length; i++) {
+			subtotal += itemTotals[i].lastChild.value * 1;
+		}
+		document.getElementById("subtotal").value = subtotal.toFixed(2);
+
+		// calculate + display tax
+		let tax = (subtotal * 0.0625).toFixed(2);
+		document.getElementById("tax").value = tax;
+
+		// calculate overall total
+		let total = (subtotal + tax * 1).toFixed(2);
+		document.getElementById("total").value = total;
+	}
+
+	// make order section textboxes read only
+	document.getElementById("subtotal").readOnly = true;
+	document.getElementById("tax").readOnly = true;
+	document.getElementById("total").readOnly = true;
+		
+	// add calculating cost of order to each select item
+	for (let i = 0; i < menuItems.length; i++) {
+		let elt = document.getElementsByName("quan" + i);
+		elt[0].addEventListener("change", updateItemCost);
+
+		// makes item cost text boxes read-only
+		totalCostDisplays[i].lastChild.readOnly = true;
+	}
+
+</script>
+
+<script>	// deals with pickup/delivery radio buttons
+
+	const pick_del = document.getElementsByName("p_or_d");
+	const streetDisplay = document.getElementsByName("street")[0];
+	const cityDisplay = document.getElementsByName("city")[0];
+	const addressLabels = document.getElementsByClassName("address");
+	let delivery = false;
+	
+	// updateLocationDisplay : Hides/unhides Street + City input depending on
+	//						   if pickup (hidden) or delivery (shown) was chosen
+	function updateLocationDisplay() {
+		if (pick_del[0].checked) {
+			delivery = false;
+			setAddressDisplay("none");
+		} else {
+			delivery = true;
+			setAddressDisplay("inline-block");
+		}
+	}
+
+	// setAddressDisplay : Sets display for label/input of address in customer info
+	//					   also makes street/city input required if delivery
+	//				args : setStyle -- style for display of address info
+	function setAddressDisplay(setStyle) {
+		streetDisplay.style.display = setStyle;
+		cityDisplay.style.display = setStyle;
+		addressLabels[0].style.display = setStyle;
+		addressLabels[1].style.display = setStyle;
+
+		streetDisplay.required = delivery? true : false;
+		cityDisplay.required = delivery? true : false;
+	}
+
+	// hide address input by default
+	setAddressDisplay("none");
+
+	// adds event for when pickup/delivery get set
+	pick_del[0].addEventListener("change", updateLocationDisplay);
+	pick_del[1].addEventListener("change", updateLocationDisplay);
+
+</script>
+
+<script>	// deals with submission + validation
+	
+	const submitBtn = document.querySelector("input[type=button]");
+	const orderForm = document.getElementsByTagName("form")[0];
+	const lastName = document.getElementsByName("lname")[0];
+	const phone = document.getElementsByName("phone")[0];
+
+	// make name + phone number always required
+	lastName.required = true;
+	phone.required = true;
+
+	// submit_validate : Validates that order is inputted correctly and
+	//					 opens new tab to display confirmed order info
+	function submit_validate() {
+		// validate user info
+		let userInfoValid = validateUserInfo();
+
+		// validate phone number
+		let phone1 = new RegExp(/^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$/);
+		let phone2 = new RegExp(/^(\d{3})[- ]?(\d{4})$/);
+		
+		let phoneValid = false;
+		if (phone1.test(phone.value) || phone2.test(phone.value)){
+			phoneValid = true;
+		} else {
+			alert("You must input a valid phone number.");
+		}
+
+		// validate that at least an item was ordered
+		let itemsValid = false;
+		for (let i = 0; i < menuItems.length; i++) {
+			let elt = document.getElementsByName("quan" + i);
+			itemsValid = itemsValid || (elt[0].selectedIndex != 0)? true : false;
+		}
+		
+		if (!itemsValid) {
+			alert("You must order at least 1 item.")
+		}
+
+		// end if form is invalid
+		if (!(userInfoValid && phoneValid && itemsValid)) {
+			return;
+		}
+
+		// successful order
+		alert("Thank you for ordering from Jade Delight!");
+
+		// determine when the order will be ready
+		let readyTime = delivery? orderTime(45) : orderTime(15);
+
+		const receipt = window.open();
+		printReceipt(receipt, readyTime);		
+	}
+
+	// validateUserInfo : Checks that user info fields were filled
+	//			 return : Returns true if all user info fields are valid
+	function validateUserInfo() {
+		let valid = lastName.checkValidity() && phone.checkValidity();
+		
+		// check if user info was inputted correctly
+		lastName.reportValidity();
+		phone.reportValidity();
+
+		// validate address input if delivery chosen
+		if (delivery) {
+			streetDisplay.reportValidity();
+			cityDisplay.reportValidity();
+			valid = valid && streetDisplay.checkValidity() && cityDisplay.checkValidity();
+		}
+
+		return valid;
+	}
+
+	// orderTime : Returns the time when the customer's order will be ready
+	//       arg : prepTime -- how much time to add to current time
+	//    return : The time that the order is ready
+	function orderTime(prepTime) {
+		let today = new Date();
+		today.setMinutes(today.getMinutes() + prepTime);
+		let readyTime = new Date(today).toLocaleTimeString();
+
+		return readyTime;
+	}
+
+	// printReceipt : Write order receipt to new window
+	//			arg : w -- Window to write to
+	//				  time -- Time that the order will be ready
+	function printReceipt(w, time) {
+		// style
+		w.document.write("<head><style type='text/css'>");
+
+		w.document.write("html, body { font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; }");
+		w.document.write("h1 { text-align: center; }")
+		w.document.write(".readyDisplay {padding-top: 20px; text-align: center;font-size: 20px;}");
+		w.document.write(".timeDisplay { text-align: center; font-size: 30px; }");
+		w.document.write(".details-header { text-align: center; padding-top: 25px; font-size: 20px; }")
+		w.document.write(".receipt-header { width: auto; padding: 0px; }");
+		w.document.write("#receipt-table { display: flex; justify-content: center; }");
+		w.document.write(".colQTY { text-align: center; padding: 0px 20px; }");
+		w.document.write(".colsubT { text-align: end; }");
+		w.document.write(".rowTotal { font-size: 20px; font-weight: 600; }")
+		
+		w.document.write("</style></head>");
+
+		// receipt header
+		w.document.write("<br/><h1 class='receipt-header'>Thank you for your order!</h1>");
+		w.document.write("<p class='readyDisplay'>Your order will be ready at</p>");
+		w.document.write("<h2 class='timeDisplay'>" + time + "</h2>");
+		w.document.write("<h3 class='details-header'>Order Details</h3>")
+
+		// order details table
+		w.document.write("<div id='receipt-table'>")
+		w.document.write("<table cellpadding='5'> <tr>");
+		w.document.write("<th class='colItem'>Item</th>");
+		w.document.write("<th class='colQTY'>QTY</th>");
+		w.document.write("<th class='colsubT'>Subtotal</th></tr>");
+
+		// add ordered items to receipt
+		for (let i = 0; i < menuItems.length; i++) {
+			let elt = document.getElementsByName("quan" + i)[0];
+			if (elt.selectedIndex != 0) {
+				let qty = elt.value;
+				let itemName = menuItems[i].name;
+				let itemSubT = totalCostDisplays[i].lastChild.value;
+				
+				w.document.write("<tr>");
+				w.document.write("<td class='colItem'>" + itemName +"</td>");
+				w.document.write("<td class='colQTY'>" + qty + "</td>");
+				w.document.write("<td class='colsubT'>$" + itemSubT +"</td>");
+				w.document.write("</tr>");
+			}
+		}
+
+		w.document.write("<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>");
+
+		let subT = document.getElementById("subtotal").value;
+		let tx = document.getElementById("tax").value;
+		let overallTotal = document.getElementById("total").value;
+
+		// subtotal
+		w.document.write("<tr><td class='colItem'>Subtotal</td>");
+		w.document.write("<td>&nbsp;</td><td class='colsubT'>$"+ subT + "</td></tr>");
+
+		// tax
+		w.document.write("<tr><td class='colItem'>Tax</td>");
+		w.document.write("<td>&nbsp;</td><td class='colsubT'>$"+ tx + "</td></tr>");
+
+		// overall total
+		w.document.write("<tr class='rowTotal'><td class='colItem'>Total</td>");
+		w.document.write("<td>&nbsp;</td><td class='colsubT'>$"+ overallTotal + "</td></tr>");
+
+		w.document.write("</table></div>");
+	
+	}
+	
+	// add submission functionality to button
+	submitBtn.addEventListener("click", submit_validate);
+
+</script>
